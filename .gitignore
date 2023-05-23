@@ -1,52 +1,32 @@
-# Prerequisites
-*.d
-
-# Object files
+.config
 *.o
-*.ko
-*.obj
-*.elf
+sdkconfig
 
-# Linker output
-*.ilk
-*.map
-*.exp
+# eclipse setting
+.settings
 
-# Precompiled Headers
-*.gch
-*.pch
+# MacOS directory files
+.DS_Store
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
+# VS Code Settings
+.vscode/
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
+# VIM files
+*.swp
+*.swo
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+# Clion IDE CMake build & config
+.idea/
+cmake-build-*/
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
+# ESP-IDF default build directory name
+build
 
-# Kernel Module Compile Results
-*.mod*
+# lock files for examples and components
+dependencies.lock
+
+# managed_components for examples
+managed_components
+
+# other junk
 *.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
