@@ -7,22 +7,54 @@
 #include <N2kMsg.h>
 #include <NMEA2000.h> // https://github.com/ttlappalainen/NMEA2000
 #include "sdkconfig.h"
-#define ESP32_CAN_TX_PIN (gpio_num_t)CONFIG_ESP32_CAN_TX_PIN // from sdkconfig (idf menuconfig)
-#define ESP32_CAN_RX_PIN (gpio_num_t)CONFIG_ESP32_CAN_RX_PIN
+#define ESP32_CAN_TX_PIN (gpio_num_t) CONFIG_ESP32_CAN_TX_PIN // from sdkconfig (idf menuconfig)
+#define ESP32_CAN_RX_PIN (gpio_num_t) CONFIG_ESP32_CAN_RX_PIN
 #include <NMEA2000_esp32.h> // https://github.com/ttlappalainen/NMEA2000_esp32
 #include "N2kMessages.h"
+#include "ESP32N2kStream.h"
 #include "N2kGroupFunctionBinaryStatus.h" // this file was not included in the library
 
 static const char *TAG = "my_N2K_lib";
 tNMEA2000_esp32 NMEA2000;
 
+// Set the information for other bus devices, which messages we support
+const unsigned long TransmitMessages[] = {127501UL, 0};
+const unsigned long ReceiveMessages[] = {127502UL, 0};
+
+static TaskHandle_t N2K_task_handle = NULL;
 static tN2kBinaryStatus switchBanks[2]; // each Bank contains up to 28 Items
 static bool statusNeedsUpdate;
 #define BinStatusUpdatePeriod 2500
 #define BinStatusUpdateOffset 100
 tN2kSyncScheduler binStatusScheduler(false, BinStatusUpdatePeriod, BinStatusUpdateOffset);
-static TaskHandle_t N2K_task_handle = NULL;
 
+static uint8_t device_instance = 1;
+// GroupFunctionHandlerForPGN127501 can ask if we have a particular instance
+bool HasInstance(uint8_t _Instance)
+{
+    return (_Instance == device_instance);
+}
+// GroupFunctionHandlerForPGN127501 can change our particular instance
+// Function should change _NewInstance for _OldInstance.
+bool ChangeInstance(uint8_t _OldInstance, uint8_t _NewInstance)
+{
+    if (_OldInstance == device_instance)
+    {
+        // only change instance if match _OldInstance
+        device_instance = _NewInstance;
+        return true;
+    }
+    return false;
+}
+
+// GroupFunctionHandlerForPGN127501 can change the transmission interval(period) and offset
+bool binStatusChangeTransmissionInterval(uint8_t _Instance, uint32_t TransmissionInterval, uint16_t TransmissionIntervalOffset)
+{
+    binStatusScheduler.SetPeriodAndOffset(TransmissionInterval, TransmissionIntervalOffset);
+    return true;
+};
+
+// Define OnOpen call back. This will be called, when CAN is open and system starts address claiming.
 void OnN2kOpen()
 {
     // Start schedulers now.
@@ -95,6 +127,15 @@ void HandleNMEA2000Msg(const tN2kMsg &N2kMsg)
     }
 }
 
+// If SetNext is true, function must set next binary instace message from given instance and set _Instance to set instance.
+// If there is not next, function return false and set _Instance to 0xff
+// If _Instance is 0xff, function must return binary status for firts instance.
+bool SetBinaryStatusMessage(uint8_t &_Instance, tN2kMsg &N2kMsg, bool SetNext)
+{
+    // TODO ???
+    return false;
+}
+
 // If there is request for 127501, you must respond to it.
 bool ISORequestHandler(unsigned long RequestedPGN, unsigned char Requester, int DeviceIndex)
 {
@@ -110,6 +151,7 @@ bool ISORequestHandler(unsigned long RequestedPGN, unsigned char Requester, int 
 // This is a FreeRTOS task
 void N2K_task(void *pvParameters)
 {
+    ESP_LOGI(TAG, "Starting task");
     statusNeedsUpdate = false;
     N2kResetBinaryStatus(switchBanks[0]);
     N2kResetBinaryStatus(switchBanks[1]);
@@ -140,23 +182,29 @@ void N2K_task(void *pvParameters)
                                   4,      // Marine
                                   0);
 
-    // NMEA2000.SetForwardStream(&Serial);            // PC output on native port
-    NMEA2000.SetForwardType(tNMEA2000::fwdt_Text); // Show in clear text
-    NMEA2000.EnableForward(false);                 // Disable all msg forwarding to USB (=Serial)
+    NMEA2000.SetForwardStream(new ESP32N2kStream()); // PC output on native port
+    NMEA2000.SetForwardType(tNMEA2000::fwdt_Text);   // Show in clear text
+    // NMEA2000.EnableForward(false);                 // Disable all msg forwarding to USB (=Serial)
 
     NMEA2000.SetMsgHandler(HandleNMEA2000Msg);
 
     // You must also create ISO Request handler and configure it with NMEA2000.SetISORqstHandler(..); in initialization.
     NMEA2000.SetISORqstHandler(ISORequestHandler);
 
-// You should also handle group function messages 126208.
-// TODO: figure out how the constructor for tN2kGroupFunctionHandlerForPGN127501 should be called
-    //NMEA2000.AddGroupFunctionHandler(new tN2kGroupFunctionHandlerForPGN127501(&NMEA2000));
+    // You should also handle group function messages 126208.
+    NMEA2000.AddGroupFunctionHandler(new tN2kGroupFunctionHandlerForPGN127501(&NMEA2000,
+                                                                              &HasInstance,
+                                                                              &SetBinaryStatusMessage,
+                                                                              &ChangeInstance,
+                                                                              &binStatusChangeTransmissionInterval));
 
     // If you also want to see all traffic on the bus use N2km_ListenAndNode instead of N2km_NodeOnly below
     NMEA2000.SetMode(tNMEA2000::N2km_ListenAndNode, 22);
-    // Here we tell, which PGNs we transmit from temperature monitor
-    // NMEA2000.ExtendTransmitMessages(TemperatureMonitorTransmitMessages, 0);
+
+    // Here we tell, which PGNs we transmit and receive
+    NMEA2000.ExtendTransmitMessages(TransmitMessages, 0);
+    NMEA2000.ExtendReceiveMessages(ReceiveMessages, 0);
+
     // Define OnOpen call back. This will be called, when CAN is open and system starts address claiming.
     NMEA2000.SetOnOpen(OnN2kOpen);
     NMEA2000.Open();
@@ -172,8 +220,8 @@ void N2K_task(void *pvParameters)
 // was setup() in Arduino example:
 extern "C" int my_N2K_lib_init(void)
 {
-    esp_err_t result;
-
+    esp_err_t result = ESP_OK;
+    ESP_LOGV(TAG, "create task");
     xTaskCreate(
         &N2K_task,            // Pointer to the task entry function.
         "N2K_task",           // A descriptive name for the task for debugging.

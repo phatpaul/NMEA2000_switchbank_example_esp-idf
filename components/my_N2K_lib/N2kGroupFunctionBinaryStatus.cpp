@@ -45,10 +45,10 @@ tN2kGroupFunctionHandlerForPGN127501::tN2kGroupFunctionHandlerForPGN127501(tNMEA
 // For requirements for handling Group function request for PGN 60928
 bool tN2kGroupFunctionHandlerForPGN127501::HandleRequest(const tN2kMsg &N2kMsg,
                                uint32_t TransmissionInterval,
-                               uint16_t /*TransmissionIntervalOffset*/,
+                               uint16_t TransmissionIntervalOffset,
                                uint8_t  NumberOfParameterPairs,
                                int iDev) {
-  tN2kGroupFunctionTransmissionOrPriorityErrorCode pec=GetRequestGroupFunctionTransmissionOrPriorityErrorCode(TransmissionInterval);
+  tN2kGroupFunctionTransmissionOrPriorityErrorCode pec=GetRequestGroupFunctionTransmissionOrPriorityErrorCode(TransmissionInterval,TransmissionIntervalOffset);
   bool MatchFilter=true;
   tN2kMsg N2kRMsg;
   uint8_t Instance=0xff;

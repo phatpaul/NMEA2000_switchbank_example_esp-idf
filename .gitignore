@@ -1,6 +1,7 @@
 .config
 *.o
 sdkconfig
+sdkconfig.old
 
 # eclipse setting
 .settings
@@ -30,3 +31,4 @@ managed_components
 
 # other junk
 *.cmd
+*.sh

@@ -3,8 +3,11 @@ set(srcs
 )
 
 set(reqs
-    "my_NMEA2K_lib"
+    "my_N2K_lib"
 )
 
-idf_component_register(SRCS ${srcs}
-                    INCLUDE_DIRS "")
+idf_component_register(
+    SRCS ${srcs}
+    INCLUDE_DIRS ""
+    REQUIRES ${reqs}
+)

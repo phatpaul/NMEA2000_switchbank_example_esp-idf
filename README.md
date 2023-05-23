@@ -18,6 +18,8 @@ Select the instructions depending on Espressif chip installed on your developmen
 Clone this repo and make sure to get the submodules.
 `git clone https://github.com/phatpaul/NMEA2000_switchbank_example_esp-idf.git --recursive`
 
+(If you forgot the --recusive clone, then you can get the submodules later with `git submodule update --init --recursive`)
+
 Launch the ESP-IDF build environment (varies with OS).  Then `idf build`
 
 ## Example project structure

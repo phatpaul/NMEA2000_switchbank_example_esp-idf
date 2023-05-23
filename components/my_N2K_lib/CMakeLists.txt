@@ -1,6 +1,7 @@
 set(srcs
     "my_N2K_lib.cpp"
     "N2kGroupFunctionBinaryStatus.cpp"
+    "ESP32N2kStream.cpp"
 )
 
 set(reqs
