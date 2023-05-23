@@ -1,0 +1,27 @@
+name: builds
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'master'
+      - 'release/*'
+    tags:
+      - 'v*.*'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - name: esp-idf v4.4 build esp32
+      uses: espressif/esp-idf-ci-action@v1
+      with:
+        esp_idf_version: v4.4
+        target: esp32
+        path: '.'
