@@ -213,6 +213,7 @@ void N2K_task(void *pvParameters)
         // put your main code here, to run repeatedly:
         TaskN2kBinStatus();
         NMEA2000.ParseMessages();
+        vTaskDelay(1); // yield for 1ms (make sure to set FreeRTOS tick rate to 1000Hz in menuconfig)
     }
     vTaskDelete(NULL); // should never get here...
 }
