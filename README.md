@@ -1,5 +1,8 @@
-| Supported Targets | ESP32 [![builds](https://github.com/phatpaul/NMEA2000_switchbank_example_esp-idf/actions/workflows/main.yml/badge.svg)](https://github.com/phatpaul/NMEA2000_switchbank_example_esp-idf/actions/workflows/main.yml) | ESP32-C2 | ESP32-C3 | ESP32-S2 | ESP32-S3 |
+| Supported Targets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-S2 | ESP32-S3 |
 | ----------------- | ----- | -------- | -------- | -------- | -------- |
+| ESP-IDF 3.3 | ❌ | ❌ | ❌ | ❌ | ❌ |
+| ESP-IDF 4.4 | [![builds](https://github.com/phatpaul/NMEA2000_switchbank_example_esp-idf/actions/workflows/builds-idf4.4-esp32.yml/badge.svg)](https://github.com/phatpaul/NMEA2000_switchbank_example_esp-idf/actions/workflows/builds-idf4.4-esp32.yml) | No | No | No | No |
+| ESP-IDF 5.1 | [![builds](https://github.com/phatpaul/NMEA2000_switchbank_example_esp-idf/actions/workflows/builds-idf5.1-esp32.yml/badge.svg)](https://github.com/phatpaul/NMEA2000_switchbank_example_esp-idf/actions/workflows/builds-idf5.1-esp32.yml) | ? | ? | ? | ? |
 
 # NMEA2000_switchbank_example_esp-idf
 
