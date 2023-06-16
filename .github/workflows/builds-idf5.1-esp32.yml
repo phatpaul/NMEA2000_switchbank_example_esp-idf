@@ -1,13 +1,17 @@
-name: builds-idf5.1-esp32
+name: idf5.1-esp32
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/builds-idf5.1-esp32.yml"
+      - "components/**"
+      - "main/**"
   push:
-    branches:
-      - 'master'
-      - 'release/*'
-    tags:
-      - 'v*.*'
+    paths:
+      - ".github/workflows/builds-idf5.1-esp32.yml"
+      - "components/**"
+      - "main/**"
 
 jobs:
   build:
